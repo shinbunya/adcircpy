@@ -109,20 +109,20 @@ def read_fort14(filename: os.PathLike):
                     line = file.readline().split()
                     if last_digit == 3:
                         node = {
-                            'node_id': (line[0],),
+                            'node_id': (int(line[0]),),
                             'barrier_height': float(line[1]),
                             'supercritical_flow_coefficient': float(line[2]),
                         }
                     elif last_digit == 4:
                         node = {
-                            'node_id': (line[0], line[1]),
+                            'node_id': (int(line[0]), int(line[1])),
                             'barrier_height': float(line[2]),
                             'subcritical_flow_coefficient': float(line[3]),
                             'supercritical_flow_coefficient': float(line[4]),
                         }
                     elif last_digit == 5:
                         node = {
-                            'node_id': (line[0], line[1]),
+                            'node_id': (int(line[0]), int(line[1])),
                             'barrier_height': float(line[2]),
                             'subcritical_flow_coefficient': float(line[3]),
                             'supercritical_flow_coefficient': float(line[4]),
@@ -132,7 +132,7 @@ def read_fort14(filename: os.PathLike):
                         }
                     else:
                         node = {
-                            'node_id': line[0],
+                            'node_id': int(line[0]),
                         }
 
                     for key, value in node.items():
@@ -229,7 +229,7 @@ def to_string(description, nodes, elements, boundaries=None, crs=None):
             out.append(' '.join(line))
             for i, node_id in enumerate(boundary['node_id']):
                 if isinstance(node_id, Iterable) and not isinstance(node_id, str):
-                    line = [' '.join([x for x in list(node_id)])]
+                    line = [' '.join([str(x) for x in list(node_id)])]
                 else:
                     line = [node_id]
                 if ibtype.endswith('3'):  # outflow

@@ -72,6 +72,7 @@ class AdcircMeshMeta(type):
         'elemental_slope_limiter',
         'advection_state',
         'initial_river_elevation',
+        'condensed_nodes',
     ]
 
     def __new__(meta, name, bases, attrs):
@@ -188,17 +189,17 @@ class AdcircMesh(metaclass=AdcircMeshMeta):
         points = self.get_xy(3395)
         values = np.full(self.values.shape, default_value)
         for k, v in self.node_neighbors.items():
-            x0, y0 = points[k]
+            x0, y0 = points[k-1]
             distances = list()
             for idx in v:
-                x1, y1 = points[idx]
+                x1, y1 = points[idx-1]
                 distances.append(np.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2))
             distance = np.mean(distances)
             if distance >= threshold_distance:
-                if self.values.iloc[k, :].values[0] >= threshold_depth:
-                    values[k] = shallow_tau0
+                if self.values.iloc[k-1, :].values[0] >= threshold_depth:
+                    values[k-1] = shallow_tau0
                 else:
-                    values[k] = deep_tau0
+                    values[k-1] = deep_tau0
         self.primitive_weighting_in_continuity_equation = values
 
     def critical_timestep(self, cfl, maxvel=5.0, g=9.8):
@@ -219,11 +220,11 @@ class AdcircMesh(metaclass=AdcircMeshMeta):
             points = self.get_xy('EPSG:4326')
             self._node_distances_in_meters = {}
             for k, v in self.node_neighbors.items():
-                x0, y0 = points.iloc[k].values
-                self._node_distances_in_meters[k] = {}
+                x0, y0 = points.iloc[k-1].values
+                self._node_distances_in_meters[k-1] = {}
                 for idx in v:
-                    x1, y1 = points.iloc[idx].values
-                    self._node_distances_in_meters[k][idx] = haversine(
+                    x1, y1 = points.iloc[idx-1].values
+                    self._node_distances_in_meters[k-1][idx-1] = haversine(
                         (y0, x0), (y1, x1), unit=Unit.METERS
                     )
         return self._node_distances_in_meters
@@ -232,10 +233,21 @@ class AdcircMesh(metaclass=AdcircMeshMeta):
     def node_neighbors(self):
         if not hasattr(self, '_node_neighbors'):
             self._node_neighbors = defaultdict(set)
-            for simplex in self.triangulation.triangles:
+            for k in self.triangles.index:
+                simplex = self.triangles.loc[k].values
                 for i, j in permutations(simplex, 2):
                     self._node_neighbors[i].add(j)
         return self._node_neighbors
+
+    @property
+    def node_elements(self):
+        if not hasattr(self, '_node_elements'):
+            self._node_elements = defaultdict(set)
+            for k in self.triangles.index:
+                simplex = self.triangles.loc[k].values
+                for j in simplex:
+                    self._node_elements[j].add(k)
+        return self._node_elements
 
     def __copy__(self) -> bool:
         instance = super().__copy__()

@@ -224,7 +224,7 @@ class Fort14(Grd):
     def write(self, path, overwrite=False, format='fort.14'):
         if format in ['fort.14']:
             _grd = self.to_dict()
-            nodes = self.nodes
+            nodes = self.nodes.copy()
             nodes.iloc[:, 2:] *= -1
             _grd['nodes'] = nodes
 
