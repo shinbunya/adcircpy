@@ -110,7 +110,7 @@ class NodalAttributes:
                 _attr['values'] = _attr['values'].reshape((_attr['values'].shape[0], 1))
             _attr['defaults'] = mode_rows(_attr['values'])
             _attr['non_default_indexes'] = np.where(
-                (_attr['values'] != _attr['defaults']).all(axis=1)
+                (_attr['values'] != _attr['defaults']).any(axis=1)
             )[0]
             self._attributes[name] = _attr
         return self._attributes[name]
