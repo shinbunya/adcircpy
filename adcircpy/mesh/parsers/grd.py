@@ -228,7 +228,6 @@ def to_string(description, nodes, elements, boundaries=None, crs=None):
             ]
             out.append(' '.join(line))
             for i, node_id in enumerate(boundary['node_id']):
-                print('node_id', node_id)
                 if isinstance(node_id, Iterable) and not isinstance(node_id, str):
                     line = [' '.join([str(x) for x in list(node_id)])]
                 else:
@@ -247,7 +246,6 @@ def to_string(description, nodes, elements, boundaries=None, crs=None):
                     line.append(f'{boundary["cross_barrier_pipe_height"][i]:.16e}')
                     line.append(f'{boundary["friction_factor"][i]:.16e}')
                     line.append(f'{boundary["pipe_diameter"][i]:.16e}')
-                print('line', line)
                 out.append(' '.join(line))
     return '\n'.join(out)
 
