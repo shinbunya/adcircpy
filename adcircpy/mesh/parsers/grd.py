@@ -214,7 +214,7 @@ def to_string(description, nodes, elements, boundaries=None, crs=None):
     for ibtype in boundaries:
         if ibtype is not None:
             for bnd in boundaries[ibtype]:
-                _cnt += np.asarray(bnd['node_id']).shape[0]
+                _cnt += len(bnd['node_id'])
     out.append(f'{_cnt:d} ! Total number of non-ocean boundary nodes')
     # all additional boundaries
     for ibtype, type_boundaries in boundaries.items():
@@ -228,10 +228,11 @@ def to_string(description, nodes, elements, boundaries=None, crs=None):
             ]
             out.append(' '.join(line))
             for i, node_id in enumerate(boundary['node_id']):
+                print('node_id', node_id)
                 if isinstance(node_id, Iterable) and not isinstance(node_id, str):
                     line = [' '.join([str(x) for x in list(node_id)])]
                 else:
-                    line = [node_id]
+                    line = [str(node_id) if not isinstance(node_id, str) else node_id]  # Convert to string only if not already a string
                 if ibtype.endswith('3'):  # outflow
                     line.append(f'{boundary["barrier_height"][i]:.16e}')
                     line.append(f'{boundary["supercritical_flow_coefficient"][i]:.16e}')
@@ -246,6 +247,7 @@ def to_string(description, nodes, elements, boundaries=None, crs=None):
                     line.append(f'{boundary["cross_barrier_pipe_height"][i]:.16e}')
                     line.append(f'{boundary["friction_factor"][i]:.16e}')
                     line.append(f'{boundary["pipe_diameter"][i]:.16e}')
+                print('line', line)
                 out.append(' '.join(line))
     return '\n'.join(out)
 
