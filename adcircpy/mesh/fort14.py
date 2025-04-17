@@ -27,7 +27,7 @@ class BaseBoundaries:
     def indexes(self):
         if not hasattr(self, '_indexes'):
             self._indexes = [
-                [self._mesh.nodes.index.get_loc(int(node_id)) for node_id in data['node_id']]
+                [self._mesh.nodes.index.get_loc(int(node_id[0]) if type(node_id) == tuple else node_id if type(node_id) == int else int(node_id)) for node_id in data['node_id']]
                 for data in self._data.values()
             ]
         return self._indexes
@@ -82,17 +82,30 @@ class InflowBoundaries(BaseBoundaries):
 
 class BarrierBaseBoundaries(BaseBoundaries):
     @property
+    def indexes(self):
+        if not hasattr(self, '_indexes'):
+            self._indexes = [
+                [(self._mesh.nodes.index.get_loc(int(node_id[0])) if type(node_id[0]) == str else node_id[0],
+                  self._mesh.nodes.index.get_loc(int(node_id[1])) if type(node_id[1]) == str else node_id[1]) 
+                 for node_id in data['node_id']]
+                for data in self._data.values()
+            ]
+        return self._indexes
+    
+    @property
     def gdf(self):
         if not hasattr(self, '_gdf'):
             data = []
             for i, (id, boundary) in enumerate(self._data.items()):
                 front_face, back_face = list(zip(*self.indexes[i]))
+                front_face = list(front_face)
+                back_face = list(back_face)
                 data.append(
                     {
                         'geometry': MultiLineString(
                             [
-                                LineString(self._mesh.coords.iloc[front_face, :].values),
-                                LineString(self._mesh.coords.iloc[back_face, :].values),
+                                LineString(self._mesh.coords.loc[front_face, :].values),
+                                LineString(self._mesh.coords.loc[back_face, :].values),
                             ]
                         ),
                         'key': f'{boundary.get("ibtype")}:{id}',
@@ -251,15 +264,18 @@ class Fort14(Grd):
         # figsize=rcParams["figure.figsize"],
         extent=None,
         cbar_label=None,
+        levels=256,
+        topobathy=False,
         **kwargs,
     ):
         if vmin is None:
             vmin = np.min(self.values.values)
         if vmax is None:
             vmax = np.max(self.values.values)
-        kwargs.update(**get_topobathy_kwargs(self.values, vmin, vmax))
-        kwargs.pop('col_val')
-        levels = kwargs.pop('levels')
+        if topobathy is True:
+            kwargs.update(**get_topobathy_kwargs(self.values, vmin, vmax))
+            kwargs.pop('col_val')
+            levels = kwargs.pop('levels')
         if vmin != vmax:
             self.tricontourf(axes=axes, levels=levels, vmin=vmin, vmax=vmax, **kwargs)
         else:
