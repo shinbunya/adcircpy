@@ -286,7 +286,7 @@ class Fort14(Grd):
             axes.axis(extent)
         if title is not None:
             axes.set_title(title)
-        if kwargs['cmap'] is None:
+        if 'cmap' not in kwargs:
             kwargs['cmap'] = 'viridis'
         mappable = ScalarMappable(cmap=kwargs['cmap'])
         mappable.set_array([])
